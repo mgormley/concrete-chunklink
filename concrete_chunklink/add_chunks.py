@@ -54,7 +54,14 @@ def add_chunks_to_file(in_file, out_file, chunklink):
     write_communication_to_file(comm, out_file)                
 
 def add_chunks_to_comm(comm, chunklink):
-    '''Converts the first constituency tree 
+    '''Converts the first constituency tree of each tokenization
+    to chunks and adds them as a TokenTagging to the communication.
+
+    A file containing the parse as a string will be written to the
+    current working directory.
+    
+    comm - Communication to be annotated.
+    chunklink - Path to the chunklink perl script.
     '''
     num_sents = 0
     num_chunked = 0
