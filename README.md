@@ -26,3 +26,9 @@ If using directories, they must both exists. If using two files, the
 input file must exist and the output file will be created or
 overwritten.
 
+The script is just a wrapper around
+'chunklink_2-2-2000_for_conll.pl' which is found in the scripts/
+directory. This perl script was created for the CoNLL-2000 shared task
+to convert the PTB to chunks. If you are running add_chunks.py without
+specifying the path to the chunklink script it will look in the
+'./' and then './scripts/' to try to find it before failing.
