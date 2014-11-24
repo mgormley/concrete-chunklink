@@ -22,6 +22,7 @@ from concrete.util import read_communication_from_file
 from concrete.util import write_communication_to_file
 from concrete.validate import validate_communication
 from operator import attrgetter
+import time
 
 
 def add_chunks_to_dir(in_dir, out_dir, chunklink):
@@ -78,10 +79,15 @@ def add_chunks_to_comm(comm, chunklink):
                         if len(chunk_tags) != len(tokenization.tokenList.tokenList):
                             raise Exception("ERROR: incorrect number of chunks. expected=%d actual=%d" % 
                                             (len(chunks), len(tokenization.tokenList.tokenList)))
-        
+
+                        metadata = concrete.AnnotationMetadata()
+                        metadata.tool = "Chunklink Constituency Converter"
+                        metadata.timestamp = long(time.time())
                         # Extract the chunks column and create a TokenTagging from it.
                         chunks = concrete.TokenTagging()
                         chunks.uuid = concrete_uuid.generate_UUID()
+                        chunks.metadata = metadata                        
+                        chunks.taggingType = "CHUNK"
                         chunks.taggedTokenList = []
                         for i, chunk in enumerate(chunk_tags):
                             tt = concrete.TaggedToken()
