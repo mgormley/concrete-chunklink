@@ -170,7 +170,7 @@ def penn_treebank_for_parse(parse):
     return _traverse_parse(sorted_nodes, 0)
 
 if __name__ == "__main__":
-    usage = "%prog [options] <input file> <output file>"
+    usage = "%prog [options] <input path> <output path>"
     logging.basicConfig(level=logging.INFO)
 
     parser = optparse.OptionParser(usage=usage)
