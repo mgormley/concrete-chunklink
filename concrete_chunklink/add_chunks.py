@@ -56,12 +56,9 @@ def add_chunks_to_file(in_file, out_file, chunklink):
 def add_chunks_to_comm(comm, chunklink):
     '''Converts the first constituency tree of each tokenization
     to chunks and adds them as a TokenTagging to the communication.
-
-    A file containing the parse as a string will be written to the
-    current working directory.
     
     comm - Communication to be annotated.
-    chunklink - Path to the chunklink perl script.
+    chunklink - Path to the modified chunklink perl script.
     '''
     num_sents = 0
     num_chunked = 0
@@ -71,15 +68,15 @@ def add_chunks_to_comm(comm, chunklink):
             try:       
                 if tokenization.parseList and len(tokenization.parseList) > 0:
                     parse = tokenization.parseList[0]            
-                    # Convert concrete Parse to a PTB style parse string and write to a tmp file.
+                    # Convert concrete Parse to a PTB style parse string to use as stdin for chunklink.
                     ptb_str = '( ' + penn_treebank_for_parse(parse) + ' )\n'
-                    ptb_file = './wsj_0001.mrg'
-                    with codecs.open(ptb_file, 'w', 'UTF-8') as ptb_out:
-                        ptb_out.write(ptb_str)
-                        
+                    
                     # Run the chunklink script and capture the output.
                     try:
-                        chunk_str = subprocess.check_output(['perl', chunklink, ptb_file], stderr=subprocess.PIPE)            
+                        # We expect the chunklink script to be a modified version which can read a tree from stdin.
+                        p = subprocess.Popen(['perl', chunklink], stdout=subprocess.PIPE,
+                                             stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+                        chunk_str = p.communicate(input=ptb_str)[0]
                         logging.debug("Chunklink output:\n" + chunk_str)
                         chunk_tags = get_chunks(chunk_str)
                         logging.debug("Chunk tags: " + str(chunk_tags))
@@ -108,10 +105,7 @@ def add_chunks_to_comm(comm, chunklink):
                         tokenization.tokenTaggingList.append(chunks)
                         num_chunked += 1
                     except subprocess.CalledProcessError as e:
-                        logging.error("Chunklink failed on tree: %s" % (ptb_str))
-                        
-                    # Clean up the wsj file.
-                    os.remove(ptb_file)
+                        logging.error("Chunklink failed on tree: %s" % (ptb_str))                        
             except Exception as e:
                 logging.exception("Chunking failed on tokenization")
     except Exception as e:

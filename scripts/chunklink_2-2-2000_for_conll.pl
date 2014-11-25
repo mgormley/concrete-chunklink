@@ -1,5 +1,7 @@
 #!/usr/local/bin/perl -w
 
+### MRG IMPORTANT NOTE: This script has been modified so that it reads parses from stdin.
+###
 ###
 ### Produces a convenient list of words, chunks, functions, and links from Penn TreeBank II
 ###
@@ -10,7 +12,7 @@
 
 sub help {
 print "call as:                                                                                      \n";
-print "  chunklink.pl <options> /cdrom/treebank/combined/wsj/0?/wsj_0???.mrg | more                  \n";
+print "  cat wsj_0001.mrg | chunklink.pl <options>  | more                                           \n";
 print "                                                                                              \n";
 print "options:                                                                                      \n";
 print " -s : Place a '# sentence ID' line before the word-list of each sentence                      \n";
@@ -117,10 +119,11 @@ package main;
 
 # end of nodes.pm
 
-if (@ARGV==0) {
-    help();
-    exit;
-}
+# MRG: Commented out.
+# if (@ARGV==0) {
+#     help();
+#     exit;
+# }
 
 ######################################################################
 ### check options
@@ -233,23 +236,11 @@ $prune_advp_in_vp_flag=1;
 ######################################################################
 
 $word_number=0;   # initialize: for unique word number over whole corpus
-foreach $file (@ARGV) {                     # loop: for each treebank file
-    if (defined($file)) {                   # open for reading
-	open(INPUT,"<$file") or die "Cannot open $file!\n";
-    }
-    else {
-	die "file not defined!\n";
-    }
-    if ($file =~ /\/wsj_([0-9]+)\.mrg$/) {  # extract file number
-	$filenumber=$1;
-    }
-    else {
-	die "$file does not match!\n";
-    }
+$filenumber=1; # set file number
     print STDERR "$filenumber ";
     $sentence='';                           # initialize sentence string
     $sentence_number=0;                     # initialize sentence counter
-    while (defined($sentence=<INPUT>)) {    # loop: until end of file
+    while (defined($sentence=<STDIN>)) {    # loop: until end of file
 	$result=start_read();               # read sentence into $result
 	if (defined($result->{function})    # delete outermost parentheses
 	    && $result->{function} eq 'NOLABEL' 
@@ -283,7 +274,7 @@ foreach $file (@ARGV) {                     # loop: for each treebank file
 #print "################## result ####################\n\n"; 
 	print_flatten();                    # print output
     }
-}
+
 print STDERR "\n$word_number words processed\n";
 
 ######################################################################
@@ -299,7 +290,7 @@ print STDERR "\n$word_number words processed\n";
 sub start_read {
 # skip all lines not of the form "   (..." (e.g. blank lines)
     while ($sentence!~/^\s*\((.*)$/ 
-	   && defined($sentence=<INPUT>)) {};
+	   && defined($sentence=<STDIN>)) {};
     chop($sentence);
 # consumes first opening bracket of sentence
 # calls read_sentence to read input until corresponding closing bracket is found
@@ -332,7 +323,7 @@ sub read_sentence {
 
     while ($depth>$mydepth) {        # while closing bracket of constituent is not yet found
 	if (length($sentence)==0) {      # if necessary:
-	    if (defined($sentence=<INPUT>)) { # read in new line
+	    if (defined($sentence=<STDIN>)) { # read in new line
 		chop($sentence);
 	    }
 	    else {
