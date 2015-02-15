@@ -2,7 +2,7 @@ Wrapper of the chunklink.pl script used by CoNLL-2000 for use on Concrete Commun
 
 # Dependencies
 
-This library requires concrete-python with the 3.8.0 version of the
+This library requires concrete-python with the 4.3 version of the
 Thrift spec.
 
 See https://gitlab.hltcoe.jhu.edu/concrete/concrete-python for

@@ -17,6 +17,8 @@ import json
 from thrift import TSerialization
 import concrete
 import concrete.util
+from concrete.inspect import get_tokenizations
+from concrete.inspect import penn_treebank_for_parse
 from concrete.util import concrete_uuid
 from concrete.util import read_communication_from_file
 from concrete.util import write_communication_to_file
@@ -25,7 +27,7 @@ from operator import attrgetter
 import time
 
 
-def add_chunks_to_dir(in_dir, out_dir, chunklink):
+def add_chunks_to_dir(in_dir, out_dir, chunklink, fail_on_error):
     '''Reads a directory containing Communications, adds chunking information, 
     and writes new files in the output directory containing the modified Communications.
     The directory is not searched recursively for files, only those at the top level are read.
@@ -38,22 +40,22 @@ def add_chunks_to_dir(in_dir, out_dir, chunklink):
     for in_file in glob.glob(os.path.join(in_dir, "*")):        
         logging.info("Processing: %s" % in_file)
         out_file = os.path.join(out_dir, os.path.basename(in_file))
-        add_chunks_to_file(in_file, out_file, chunklink)
+        add_chunks_to_file(in_file, out_file, chunklink, fail_on_error)
 
-def add_chunks_to_file(in_file, out_file, chunklink):
+def add_chunks_to_file(in_file, out_file, chunklink, fail_on_error):
     '''Reads a Communication file, adds chunking information, and writes a new 
     Communication file containing the annotated version.'''
     # Deserialize
     comm = read_communication_from_file(in_file)
     
     # Add chunks
-    num_chunked, num_sents = add_chunks_to_comm(comm, chunklink)
+    num_chunked, num_sents = add_chunks_to_comm(comm, chunklink, fail_on_error)
     logging.info("Chunked %d / %d = %f" % (num_chunked, num_sents,  float(num_chunked) / float(num_sents)))
     
     # Serialize
     write_communication_to_file(comm, out_file)                
 
-def add_chunks_to_comm(comm, chunklink):
+def add_chunks_to_comm(comm, chunklink, fail_on_error):
     '''Converts the first constituency tree of each tokenization
     to chunks and adds them as a TokenTagging to the communication.
     
@@ -70,6 +72,7 @@ def add_chunks_to_comm(comm, chunklink):
                     parse = tokenization.parseList[0]            
                     # Convert concrete Parse to a PTB style parse string to use as stdin for chunklink.
                     ptb_str = '( ' + penn_treebank_for_parse(parse) + ' )\n'
+                    logging.debug("PTB string: " + ptb_str)
                     
                     # Run the chunklink script and capture the output.
                     try:
@@ -81,8 +84,7 @@ def add_chunks_to_comm(comm, chunklink):
                         chunk_tags = get_chunks(chunk_str)
                         logging.debug("Chunk tags: " + str(chunk_tags))
                         if len(chunk_tags) != len(tokenization.tokenList.tokenList):
-                            raise Exception("ERROR: incorrect number of chunks. expected=%d actual=%d" % 
-                                            (len(chunks), len(tokenization.tokenList.tokenList)))
+                            raise Exception("ERROR: incorrect number of chunks. expected=%d actual=%d" % (len(tokenization.tokenList.tokenList), len(chunk_tags)))
 
                         metadata = concrete.AnnotationMetadata()
                         metadata.tool = "Chunklink Constituency Converter"
@@ -105,11 +107,14 @@ def add_chunks_to_comm(comm, chunklink):
                         tokenization.tokenTaggingList.append(chunks)
                         num_chunked += 1
                     except subprocess.CalledProcessError as e:
-                        logging.error("Chunklink failed on tree: %s" % (ptb_str))                        
+                        logging.error("Chunklink failed on tree: %s" % (ptb_str))
+                        if fail_on_error: raise e
             except Exception as e:
                 logging.exception("Chunking failed on tokenization")
+                if fail_on_error: raise e
     except Exception as e:
         logging.exception("Chunking failed on Communication")
+        if fail_on_error: raise e
     return num_chunked, num_sents
 
 whitespace = re.compile(r"\s+")
@@ -128,54 +133,6 @@ def get_chunks(chunk_str):
         chunks.append(columns[3])
     return chunks
             
-
-# COPIED FROM concrete-python/scripts/concrete-inspect.py
-def get_tokenizations(comm):
-    """Returns a flat list of all Tokenization objects in a Communication
-
-    Args:
-        comm: A Concrete Communication
-
-    Returns:
-        A list of all Tokenization objects within the Communication
-    """
-    tokenizations = []
-
-    if comm.sectionList:
-        for section in comm.sectionList:
-            if section.sentenceList:
-                for sentence in section.sentenceList:
-                    if sentence.tokenization:
-                        tokenizations.append(sentence.tokenization)
-    return tokenizations
-
-# COPIED FROM concrete-python/scripts/concrete-inspect.py
-def penn_treebank_for_parse(parse):
-    """Get a Penn-Treebank style string for a Concrete Parse object
-
-    Args:
-        parse: A Concrete Parse object
-
-    Returns:
-        A string containing a Penn Treebank style parse tree representation
-    """
-    def _traverse_parse(nodes, node_index, indent=0):
-        s = ""
-        indent += len(nodes[node_index].tag) + 2
-        if nodes[node_index].childList:
-            s += "(%s " % nodes[node_index].tag
-            for i, child_node_index in enumerate(nodes[node_index].childList):
-                if i > 0:
-                    s += "\n" + " "*indent
-                s += _traverse_parse(nodes, child_node_index, indent)
-            s += ")"
-        else:
-            s += nodes[node_index].tag
-        return s
-
-    sorted_nodes = sorted(parse.constituentList, key=attrgetter('id'))
-    return _traverse_parse(sorted_nodes, 0)
-
 if __name__ == "__main__":
     usage = "%prog [options] <input path> <output path>"
     logging.basicConfig(level=logging.INFO)
@@ -183,6 +140,8 @@ if __name__ == "__main__":
     parser = optparse.OptionParser(usage=usage)
     #parser.add_option('-i', '--in_path', help="Input file")
     #parser.add_option('-o', '--out_path', help="Output file")
+    parser.add_option( '--fail_on_error', action="store_true",  dest="fail_on_error", help="Whether to fail on errors.", default=True)
+    parser.add_option( '--cont_on_error', action="store_false", dest="fail_on_error", help="Whether to continue on errors.")
     parser.add_option('-c', '--chunklink', help="Path to chunklink perl script")
     (options, args) = parser.parse_args(sys.argv)
 
@@ -200,10 +159,18 @@ if __name__ == "__main__":
             chunklink = 'scripts/chunklink_2-2-2000_for_conll.pl'
             if not os.path.exists(chunklink):
                 raise Exception("Unable to find chunklink script. Specify with option --chunklink")
-            
+
     if not os.path.exists(in_path):
         raise Exception("Input path doesn't exist: " + in_path)
-    if os.path.isdir(in_path):
-        add_chunks_to_dir(in_path, out_path, chunklink)
+    if not os.path.exists(chunklink):
+        raise Exception("Chunklink script doesn't exist: " + chunklink)
+
+    if options.fail_on_error:
+        logging.debug("Exiting on errors.")
     else:
-        add_chunks_to_file(in_path, out_path, chunklink)
+        logging.debug("Not exiting on errors.")
+        
+    if os.path.isdir(in_path):
+        add_chunks_to_dir(in_path, out_path, chunklink, options.fail_on_error)
+    else:
+        add_chunks_to_file(in_path, out_path, chunklink, options.fail_on_error)
