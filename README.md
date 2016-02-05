@@ -21,7 +21,7 @@ To install concrete-python, use pip as below or see
 https://github.com/hltcoe/concrete-python for alternate installation
 instructions.
 
-    pip install git+https://github.com/hltcoe/concrete-python.git#egg=concrete
+    pip install 'concrete>=4.4.0<4.8.0'
 
 # Running the add_chunks.py script
 
