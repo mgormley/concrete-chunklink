@@ -76,6 +76,7 @@ def add_chunks_to_comm(comm, chunklink, fail_on_error):
                     parse = tokenization.parseList[0]            
                     # Convert concrete Parse to a PTB style parse string to use as stdin for chunklink.
                     ptb_str = '( ' + penn_treebank_for_parse(parse) + ' )\n'
+                    ptb_str = ptb_str.encode('ascii', 'replace')
                     logging.debug("PTB string: " + ptb_str)
                     
                     # Run the chunklink script and capture the output.
