@@ -1,19 +1,13 @@
 Wrapper of the chunklink.pl script used by CoNLL-2000 for use on Concrete Communications.
 
-# Dependencies
+# Requirements
 
-This library requires concrete-python with the 4.3 version of the
-Thrift spec.
+This library requires Python 2.7.x and concrete-python 4.3.x or 4.4.x.
+To install concrete-python, use pip as below or see
+https://github.com/hltcoe/concrete-python for alternate installation
+instructions.
 
-See https://gitlab.hltcoe.jhu.edu/concrete/concrete-python for
-installation instructions.
-
-# Installation
-
-For most uses cases, there is no need to install. However, in case you
-want to use this library as a module, you can run the following:
-
-    python setup.py install
+    pip install git+https://github.com/hltcoe/concrete-python.git#egg=concrete
 
 # Running the add_chunks.py script
 
@@ -33,3 +27,12 @@ directory. This perl script was created for the CoNLL-2000 shared task
 to convert the PTB to chunks. If you are running add_chunks.py without
 specifying the path to the chunklink script it will look in the './'
 and then './scripts/' to try to find it before failing.
+
+# Installation
+
+For most uses cases, there is no need to install. However, in case you
+want to use this library as a module, you can run the following:
+
+    python setup.py install
+
+Doing so will also add the entry point 'add_chunks' to your PATH.

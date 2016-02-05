@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 #
 # Example usage
-# - Install:
 #   python setup.py install
+#
 
 from setuptools import setup
 

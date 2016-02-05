@@ -1,7 +1,10 @@
 #!/usr/bin/env python
-
-"""
-"""
+#
+# Example usage:
+#     python concrete_chunklink/add_chunks.py [--chunklink <path/to/chunklink.pl>] <input path> <output path>
+#
+'''
+'''
 
 import sys
 import os
