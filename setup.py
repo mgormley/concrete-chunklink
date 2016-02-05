@@ -13,4 +13,9 @@ setup(
     author='Matt Gormley',
     author_email='mrg@cs.jhu.edu',
     url='http://www.cs.jhu.edu/~mrg/',
-    packages=['concrete_chunklink'])
+    packages=['concrete_chunklink'],
+    entry_points={
+        'console_scripts': [
+            'add_chunks = concrete_chunklink:main',
+        ],
+    })

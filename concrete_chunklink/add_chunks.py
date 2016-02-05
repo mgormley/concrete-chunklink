@@ -26,6 +26,8 @@ from concrete.validate import validate_communication
 from operator import attrgetter
 import time
 
+whitespace = re.compile(r"\s+")
+
 
 def add_chunks_to_dir(in_dir, out_dir, chunklink, fail_on_error):
     '''Reads a directory containing Communications, adds chunking information, 
@@ -42,6 +44,7 @@ def add_chunks_to_dir(in_dir, out_dir, chunklink, fail_on_error):
         out_file = os.path.join(out_dir, os.path.basename(in_file))
         add_chunks_to_file(in_file, out_file, chunklink, fail_on_error)
 
+        
 def add_chunks_to_file(in_file, out_file, chunklink, fail_on_error):
     '''Reads a Communication file, adds chunking information, and writes a new 
     Communication file containing the annotated version.'''
@@ -55,6 +58,7 @@ def add_chunks_to_file(in_file, out_file, chunklink, fail_on_error):
     # Serialize
     write_communication_to_file(comm, out_file)                
 
+    
 def add_chunks_to_comm(comm, chunklink, fail_on_error):
     '''Converts the first constituency tree of each tokenization
     to chunks and adds them as a TokenTagging to the communication.
@@ -117,7 +121,6 @@ def add_chunks_to_comm(comm, chunklink, fail_on_error):
         if fail_on_error: raise e
     return num_chunked, num_sents
 
-whitespace = re.compile(r"\s+")
 
 def get_chunks(chunk_str):
     '''Gets the column of B-I-O tags denoting the chunks 
@@ -132,14 +135,13 @@ def get_chunks(chunk_str):
         columns = whitespace.split(line)
         chunks.append(columns[3])
     return chunks
-            
-if __name__ == "__main__":
+
+
+def main():
     usage = "%prog [options] <input path> <output path>"
     logging.basicConfig(level=logging.INFO)
 
     parser = optparse.OptionParser(usage=usage)
-    #parser.add_option('-i', '--in_path', help="Input file")
-    #parser.add_option('-o', '--out_path', help="Output file")
     parser.add_option( '--fail_on_error', action="store_true",  dest="fail_on_error", help="Whether to fail on errors.", default=True)
     parser.add_option( '--cont_on_error', action="store_false", dest="fail_on_error", help="Whether to continue on errors.")
     parser.add_option('-c', '--chunklink', help="Path to chunklink perl script")
@@ -174,3 +176,7 @@ if __name__ == "__main__":
         add_chunks_to_dir(in_path, out_path, chunklink, options.fail_on_error)
     else:
         add_chunks_to_file(in_path, out_path, chunklink, options.fail_on_error)
+
+        
+if __name__ == "__main__":
+    main()
