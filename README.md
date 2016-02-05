@@ -1,4 +1,18 @@
-Wrapper of the chunklink.pl script used by CoNLL-2000 for use on Concrete Communications.
+Wrapper of the chunklink.pl script used by CoNLL-2000 for use on
+Concrete Communications.
+
+The chunklink.pl script was written by Sabine Buchholz with
+modifications by Yuval Krymolowski.  The original script is available
+along with a README describing its use.
+
+* http://ilk.uvt.nl/team/sabine/chunklink/chunklink_2-2-2000_for_conll.pl
+* http://ilk.uvt.nl/team/sabine/chunklink/README.html
+
+This wrapper was written in order to apply the chunking rules to parse
+trees annotated on Concrete data. For more information about Concrete
+see the Getting Started docs.
+
+* http://hltcoe.github.io/
 
 # Requirements
 
