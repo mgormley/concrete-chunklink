@@ -129,7 +129,9 @@ package main;
 ### check options
 ######################################################################
 
-require "getopts.pl" ;
+## MRG: Updated from Perl4's "getopts.pl" ;
+use Getopt::Std;
+$Getopt::Std::STANDARD_HELP_VERSION = "true";
 $opt_B = 'Begin' ;
 $opt_n = '' ;
 $opt_s = '' ;
@@ -141,7 +143,7 @@ $opt_H = 0 ; # head number
 $opt_i = 0 ; # IOB tag
 $opt_c = 0 ; # IOB tag chain
 $opt_t = 0 ; # trace information
-&Getopts("B:n:sNpfhHict") ;
+&getopts("B:n:sNpfhHict") ;
 
 $sent_each_word = 1 ;       # default - print the sentence for each word
 if ($opt_s)

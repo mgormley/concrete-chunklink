@@ -16,7 +16,11 @@ see the Getting Started docs.
 
 # Requirements
 
-This library requires Python 2.7.x and concrete-python 4.3.x or 4.4.x.
+This library requires:
+- Perl 5.x
+- Python 2.7.x
+- concrete-python 4.3.x or 4.4.x
+
 To install concrete-python, use pip as below or see
 https://github.com/hltcoe/concrete-python for alternate installation
 instructions.

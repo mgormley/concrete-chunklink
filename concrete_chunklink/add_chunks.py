@@ -87,8 +87,12 @@ def add_chunks_to_comm(comm, chunklink, fail_on_error):
                         # We expect the chunklink script to be a modified version which can read a tree from stdin.
                         p = subprocess.Popen(['perl', chunklink], stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-                        chunk_str = p.communicate(input=ptb_str)[0]
-                        logging.debug("Chunklink output:\n" + chunk_str)
+
+                        stdouterr = p.communicate(input=ptb_str)
+                        chunk_str = stdouterr[0]
+                        chunk_err = stdouterr[1]
+                        logging.debug("Chunklink stdout:\n" + chunk_str)
+                        logging.debug("Chunklink stderr:\n" + chunk_err)
                         chunk_tags = get_chunks(chunk_str)
                         logging.debug("Chunk tags: " + str(chunk_tags))
                         if len(chunk_tags) != len(tokenization.tokenList.tokenList):
